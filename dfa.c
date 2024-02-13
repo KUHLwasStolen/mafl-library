@@ -8,7 +8,7 @@
 
 #define SIZE 251
 
-void newDFA(int);
+void newDFA(int, char*);
 
 void** enterDFA();
 void formatForPrint(const char, const char, char*, const int, int*);
@@ -23,12 +23,18 @@ int findLoc(char*, char*, int*, const int);
 void saveDFA(void**);
 void** readDFA(char*);
 
-void newDFA(int options) {
-    void** dfa = (void**)enterDFA();
+void newDFA(int save, char* read) {
+    void** dfa = NULL;
+    if(read == 0) {
+        dfa = (void**)enterDFA();
+    } else {
+        dfa = (void**)readDFA(read);
+    }
+    
     if(dfa == 0) return;
     testDFA(dfa);
 
-    if(options == 1) saveDFA(dfa);
+    if(save == 1) saveDFA(dfa);
 
     // free memory
     for(int i = 0; i < 9; i++) {
@@ -319,7 +325,7 @@ void saveDFA(void** dfaConfig) {
 void** readDFA(char* filename) {
     FILE * fp = fopen(filename, "r");
     if(fp == NULL) {
-        printf_s("\nFile \'%s\' seems to not exist. Exiting\n");
+        printf_s("\nFile \'%s\' seems to not exist. Exiting\n", filename);
         return 0;
     }
 

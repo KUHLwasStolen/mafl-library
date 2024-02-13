@@ -285,36 +285,38 @@ void saveDFA(void** dfaConfig) {
         fprintf(fp, "%s\n", &states[stateLocs[i]]);
     }
 
-    fprintf(fp, "\nstateCount:\n%d\n", *stateCount);
+    fprintf(fp, "#\nstateCount:\n%d\n", *stateCount);
 
-    fprintf(fp, "\nstateLocs:\n");
+    fprintf(fp, "#\nstateLocs:\n");
     for(int i = 0; i < *stateCount; i++) {
         fprintf(fp, "%d\n", stateLocs[i]);
     }
 
-    fprintf(fp, "\nsymbols:\n");
+    fprintf(fp, "#\nsymbols:\n");
     for(int i = 0; i < *symbolCount; i++) {
         fprintf(fp, "%s\n", &symbols[symbolLocs[i]]);
     }
 
-    fprintf(fp, "\nsymbolCount:\n%d\n", *symbolCount);
+    fprintf(fp, "#\nsymbolCount:\n%d\n", *symbolCount);
 
-    fprintf(fp, "\nsymbolLocs:\n");
+    fprintf(fp, "#\nsymbolLocs:\n");
     for(int i = 0; i < *symbolCount; i++) {
         fprintf(fp, "%d\n", symbolLocs[i]);
     }
 
-    fprintf(fp, "\ntransitionFunc:\n");
+    fprintf(fp, "#\ntransitionFunc:\n");
     for(int i = 0; i < (*stateCount) * (*symbolCount); i++) {
         fprintf(fp, "%d\n", transitionFunc[i]);
     }
 
-    fprintf(fp, "\nstartingState:\n%d\n", *startingState);
+    fprintf(fp, "#\nstartingState:\n%d\n", *startingState);
 
-    fprintf(fp, "\nacceptingStates:\n");
+    fprintf(fp, "#\nacceptingStates:\n");
     for(int i = 0; i < *stateCount; i++) {
         fprintf(fp, "%d\n", acceptingStates[i]);
     }
+
+    fprintf(fp, "#\n");
 
     fclose(fp);
     printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n", filename);
@@ -323,16 +325,41 @@ void saveDFA(void** dfaConfig) {
 
 
 void** readDFA(char* filename) {
+    // Try to read file
     FILE * fp = fopen(filename, "r");
     if(fp == NULL) {
         printf_s("\nFile \'%s\' seems to not exist. Exiting\n", filename);
         return 0;
     }
 
+    char *states, *symbols;
+    int *stateCount, *stateLocs, *symbolCount, *symbolLocs, *transitionFunc, *startingState, *acceptingStates;
+    states = symbols = NULL;
+    stateCount = stateLocs = symbolCount = symbolCount = transitionFunc = startingState = acceptingStates = NULL;
+
+    char readLine[100];
     int readChar;
-    while((readChar = fgetc(fp)) >= 0) {
-        printf_s("%c", readChar);
+    char charBlock[2];
+
+
+    for(int i = 0; i < 9; ) {
+        readLine[0] = '\0';
+        readChar = fgetc(fp);
+
+        while(readChar >= 0 && readChar != '\n') {
+            sprintf(charBlock, "%c\0", readChar);
+            strcat(readLine, charBlock);
+            readChar = fgetc(fp);
+        }
+        if(readChar < 0) {
+            printf_s("\nEnd of file reached before all arguments were read! Exiting!\n");
+            return 0;
+        }
+        printf_s("%s\n", readLine);
+
+        if(strcmp(readLine, "#") == 0) i++;
     }
+    
 
     fclose(fp);
     return 0;

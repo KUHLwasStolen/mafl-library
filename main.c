@@ -3,6 +3,7 @@
 
 #include "dfa.h"
 #include "maflInfo.h"
+#include "generalDefs.h"
 
 int main(int argc, char* args[]) {
     if(argc == 2) {
@@ -23,7 +24,7 @@ int main(int argc, char* args[]) {
 
     } else {
         printLogo();
-        printf_s("For information on how to use mafl type \'mafl.exe --help\'");
+        printf_s("For information on how to use mafl type \'mafl.exe --help\'\n");
         return 0;
     }
     

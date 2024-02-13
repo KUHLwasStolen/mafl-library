@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "maflInfo.h"
+#include "generalDefs.h"
 
 #define VERSION "V0.1"
 
@@ -29,8 +30,6 @@ void listUsage() {
     printf_s("\t\t\t--save, -s\n\t\t\t\tSaves the automaton configuration to a file afterwards\n");
     //      --read
     printf_s("\n\t\t\t--read <file>, -r <file>\n\t\t\t\tReads a previously saved automaton config from <file>\n");
-    //      --word
-    printf_s("\n\t\t\t--word <word>, -n <word>\n\t\t\t\tAfter reading automatically starts the automaton with <word> as input\n");
 }
 
 void listShort() {
@@ -54,8 +53,6 @@ void listShort() {
     printf_s("\t\t\t--save, -s\n");
     //      --read
     printf_s("\t\t\t--read <file>, -r <file>\n");
-    //      --word
-    printf_s("\t\t\t--word <word>, -n <word>\n");
 }
 
 void printLogo() {

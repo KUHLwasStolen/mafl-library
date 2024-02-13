@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "dfa.h"
+#include "generalDefs.h"
 
 #define SIZE 251
 
@@ -151,9 +152,9 @@ void** enterDFA() {
 
     for(int i = 0, j = 0; i < *stateCount; i++) {
         printf_s("Is \'%s\' an accepting state? [y/n] ", states + stateLocs[i]);
-        fflush(stdin);
         char answer;
-        scanf("%c", &answer);
+        fflush(stdin);
+        scanf(" %c", &answer);
         if(answer == 'y' || answer == 'Y') {
             acceptingStates[i] = 1;
             j++;
@@ -310,7 +311,7 @@ void saveDFA(void** dfaConfig) {
     }
 
     fclose(fp);
-    printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)", filename);
+    printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n", filename);
 }
 
 

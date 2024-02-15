@@ -21,7 +21,9 @@ void testDFA(void**);
 int findLoc(char*, char*, int*, const int);
 
 void saveDFA(void**);
+
 void** readDFA(char*);
+int getSection(char*);
 
 void newDFA(int save, char* read) {
     void** dfa = NULL;
@@ -279,8 +281,8 @@ void saveDFA(void** dfaConfig) {
         return;
     }
 
-    // Writing values of the config in the created file
-    fprintf(fp, "states:\n");
+    // Writing values of the config in the created file, different sections seperated by '#'
+    fprintf(fp, "#\nstates:\n");
     for(int i = 0; i < *stateCount; i++) {
         fprintf(fp, "%s\n", &states[stateLocs[i]]);
     }
@@ -316,7 +318,8 @@ void saveDFA(void** dfaConfig) {
         fprintf(fp, "%d\n", acceptingStates[i]);
     }
 
-    fprintf(fp, "#\n");
+    // End of config marked by ##
+    fprintf(fp, "##");
 
     fclose(fp);
     printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n", filename);
@@ -340,12 +343,18 @@ void** readDFA(char* filename) {
     char readLine[100];
     int readChar;
     char charBlock[2];
+    // Sections: -3 = ivalid section read, -2 = starting value, -1 = none (ready for next), 
+    //           0 = states, 1 = stateCount, 2 = stateLocs, 3 = symbols, 4 = symbolCount,
+    //           5 = symbolLocs, 6 = transitionFunc, 7 = startingState, 8 = acceptingStates
+    int currentSection = -2;
 
-
+    // There are 9 sections to read from the file, i will keep track of the count
+    // i is another variable as currentSection to be able to read sections out of order and for better debuging
     for(int i = 0; i < 9; ) {
         readLine[0] = '\0';
         readChar = fgetc(fp);
 
+        // this while loop reads one whole line (ommits the \n)
         while(readChar >= 0 && readChar != '\n') {
             sprintf(charBlock, "%c\0", readChar);
             strcat(readLine, charBlock);
@@ -355,9 +364,38 @@ void** readDFA(char* filename) {
             printf_s("\nEnd of file reached before all arguments were read! Exiting!\n");
             return 0;
         }
-        printf_s("%s\n", readLine);
+        
+        // section dependent code
+        switch(currentSection) {
+            case -2:
+                break;
+            case -1: 
+                currentSection = getSection(readLine);
+                break;
+            case 0:
+                printf_s("%s\n", readLine);
+                break;
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+                break;
+            default:
+                printf_s("\nSomething went wrong while reading a config!\n");
+                return 0;
+        }
 
-        if(strcmp(readLine, "#") == 0) i++;
+        // '#' is used as a speration symbol for different sections
+        if(strcmp(readLine, "#") == 0) {
+            // increase section count (!not the same as current section!)
+            i++;
+            // ready to read next section
+            currentSection = -1;
+        } 
     }
     
 
@@ -418,4 +456,28 @@ int findLoc(char* symbol, char* symbols, int* locs, const int count) {
         }
     }
     return -1;
+}
+
+int getSection(char* readLine) {
+    if(strcmp(readLine, "states:") == 0) {
+        return 0;
+    } else if(strcmp(readLine, "stateCount:") == 0) {
+        return 1;
+    } else if(strcmp(readLine, "stateLocs:") == 0) {
+        return 2;
+    } else if(strcmp(readLine, "symbols:") == 0) {
+        return 3;
+    } else if(strcmp(readLine, "symbolCount:") == 0) {
+        return 4;
+    } else if(strcmp(readLine, "symbolLocs:") == 0) {
+        return 5;
+    } else if(strcmp(readLine, "transitionFunc:") == 0) {
+        return 6;
+    } else if(strcmp(readLine, "startingState:") == 0) {
+        return 7;
+    } else if(strcmp(readLine, "acceptingStates:") == 0) {
+        return 8;
+    }
+
+    return -3;
 }

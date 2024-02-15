@@ -176,7 +176,7 @@ void** enterDFA() {
         if(j == 0 && i == *stateCount - 1) {
             printf_s("Zero accepting states? Sure? [y/n] ");
             fflush(stdin);
-            scanf("%c", &answer);
+            scanf(" %c", &answer);
             if(answer == 'y' || answer == 'Y') {
                 
             } else if(answer == 'n' || answer == 'N') {
@@ -234,6 +234,12 @@ void testDFA(void** dfaConfig) {
     int currentSymbol;
 
     printf_s("\nThe automaton starts in state \'%s\'\n", &states[stateLocs[currentState]]);
+    printf_s("This is %san accepting state.\n", acceptingStates[currentState] ? "" : "not ");
+    printf_s("The available symbol%s: ", *symbolCount == 1 ? " is" : "s are");
+    for(int i = 0; i < *symbolCount; i++) {
+        printf_s("\'%s\'%c ", &symbols[symbolLocs[i]], i == (*symbolCount) - 1 ? '\0' : ',');
+    }
+    puts("");
     printf_s("To end testing enter a symbol not part of the valid symbols.\nEnter one(!) symbol to be the first input of your DFA: ");
 
     while(1) {
@@ -249,7 +255,7 @@ void testDFA(void** dfaConfig) {
         // Figure out which symbol was entered
         currentSymbol = findLoc(inputSymbol, symbols, symbolLocs, *symbolCount);
 
-        currentState = *(transitionFunc + (currentState * *symbolCount) + currentSymbol);
+        currentState = *(transitionFunc + (currentState * (*symbolCount)) + currentSymbol);
         printf_s("The DFA is now in state \'%s\'\nThis is %san accepting state.\n", &states[stateLocs[currentState]], acceptingStates[currentState] ? "" : "not ");
         printf_s("\nNext symbol: ");
     }
@@ -319,7 +325,8 @@ void saveDFA(void** dfaConfig) {
     }
 
     // End of config marked by ##
-    fprintf(fp, "##");
+    // !!The '\n' is very important here or else errors will occur during reading!!
+    fprintf(fp, "##\n");
 
     fclose(fp);
     printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n", filename);
@@ -337,8 +344,24 @@ void** readDFA(char* filename) {
 
     char *states, *symbols;
     int *stateCount, *stateLocs, *symbolCount, *symbolLocs, *transitionFunc, *startingState, *acceptingStates;
+    void **dfaConfig = NULL;
     states = symbols = NULL;
     stateCount = stateLocs = symbolCount = symbolCount = transitionFunc = startingState = acceptingStates = NULL;
+
+    // Allocate memory for pointers where we know the size already 
+    // (states, stateCount, symbols, symbolCount, startingState, dfaConfig)
+    states = calloc(SIZE, sizeof(char));
+    stateCount = calloc(1, sizeof(int));
+    symbols = calloc(SIZE, sizeof(char));
+    symbolCount = calloc(1, sizeof(int));
+    startingState = calloc(1, sizeof(int));
+    dfaConfig = calloc(9, sizeof(void*));
+
+    // Check correct allocation for all at once
+    if(states == 0 || stateCount == 0 || symbols == 0 || symbolCount == 0 || startingState == 0 || dfaConfig == 0) {
+        printf_s("\nMemory allocation error! Exiting!\n");
+        return 0;
+    }
 
     char readLine[100];
     int readChar;
@@ -347,10 +370,12 @@ void** readDFA(char* filename) {
     //           0 = states, 1 = stateCount, 2 = stateLocs, 3 = symbols, 4 = symbolCount,
     //           5 = symbolLocs, 6 = transitionFunc, 7 = startingState, 8 = acceptingStates
     int currentSection = -2;
+    // Variable for writing data to pointers without losing position between loops
+    int pointerPos = 0;
 
     // There are 9 sections to read from the file, i will keep track of the count
-    // i is another variable as currentSection to be able to read sections out of order and for better debuging
-    for(int i = 0; i < 9; ) {
+    // i is a different variable than currentState to better detect faulty files
+    for(int i = 0; i < 10; ) {
         readLine[0] = '\0';
         readChar = fgetc(fp);
 
@@ -373,16 +398,58 @@ void** readDFA(char* filename) {
                 currentSection = getSection(readLine);
                 break;
             case 0:
-                printf_s("%s\n", readLine);
+                if(strcmp(readLine, "#") == 0) break;
+                for(int j = 0; j < strlen(readLine); j++) {
+                    states[pointerPos++] = readLine[j];
+                }
+                states[pointerPos++] = '\0';
                 break;
             case 1:
+                if(strcmp(readLine, "#") == 0) break;
+                *stateCount = (int)strtol(readLine, NULL, 10);
+                stateLocs = calloc(*stateCount, sizeof(int));
+                acceptingStates = calloc(*stateCount, sizeof(int));
+                if(stateLocs == NULL || acceptingStates == NULL) {
+                    printf_s("\nMemory allocation error! Exiting!\n");
+                    return 0;
+                }
+                break;
             case 2:
+                if(strcmp(readLine, "#") == 0) break;
+                stateLocs[pointerPos++] = (int)strtol(readLine, NULL, 10);
+                break;
             case 3:
+                if(strcmp(readLine, "#") == 0) break;
+                for(int j = 0; j < strlen(readLine); j++) {
+                    symbols[pointerPos++] = readLine[j];
+                }
+                symbols[pointerPos++] = '\0';
+                break;
             case 4:
+                if(strcmp(readLine, "#") == 0) break;
+                *symbolCount = (int)strtol(readLine, NULL, 10);
+                symbolLocs = calloc(*symbolCount, sizeof(int));
+                transitionFunc = calloc((*symbolCount) * (*stateCount), sizeof(int));
+                if(symbolLocs == NULL || transitionFunc == NULL) {
+                    printf_s("\nMemory allocation error! Exiting!\n");
+                    return 0;
+                }
+                break;
             case 5:
+                if(strcmp(readLine, "#") == 0) break;
+                symbolLocs[pointerPos++] = (int)strtol(readLine, NULL, 10);
+                break;
             case 6:
+                if(strcmp(readLine, "#") == 0) break;
+                transitionFunc[pointerPos++] = (int)strtol(readLine, NULL, 10);
+                break;
             case 7:
+                if(strcmp(readLine, "#") == 0) break;
+                *startingState = (int)strtol(readLine, NULL, 10);
+                break;
             case 8:
+                if(strcmp(readLine, "#") == 0) break;
+                acceptingStates[pointerPos++] = (int)strtol(readLine, NULL, 10);
                 break;
             default:
                 printf_s("\nSomething went wrong while reading a config!\n");
@@ -395,12 +462,29 @@ void** readDFA(char* filename) {
             i++;
             // ready to read next section
             currentSection = -1;
-        } 
+            // reset pointer position
+            pointerPos = 0;
+        } else if(i == 9 && strcmp(readLine, "##") == 0) {
+            // If the program reaches exactly this state we can be pretty certain that everything went right :)
+            printf_s("DFA configuration read succesfully!\nYou can now interact with the automaton.\n\n");
+            i++;
+        }
     }
     
 
     fclose(fp);
-    return 0;
+    
+    dfaConfig[0] = states;
+    dfaConfig[1] = stateCount;
+    dfaConfig[2] = stateLocs;
+    dfaConfig[3] = symbols;
+    dfaConfig[4] = symbolCount;
+    dfaConfig[5] = symbolLocs;
+    dfaConfig[6] = transitionFunc;
+    dfaConfig[7] = startingState;
+    dfaConfig[8] = acceptingStates;
+
+    return dfaConfig;
 }
 
 

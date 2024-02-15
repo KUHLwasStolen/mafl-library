@@ -22,8 +22,6 @@ Useful command line tools for people interested in mathematics and computer scie
 2.2 [Computer Science](#computer-science)
 3. [Usage](#usage)
 
-*Note:* As of now the output of `mafl -h` claims things that the project cannot YET do, as this is a very early stage.  
-
 ## About
 
 `mafl` stands for '**MA**ths' and '**A**utomata, **F**ormal **L**anguages and computation'.  
@@ -45,7 +43,7 @@ none at the moment :(
 ### Computer Science
 
 **DFA** *(Deterministic Finite Automaton)*  
-- Reads a DFA either from the command line or a previously stored file (WIP atm) and then let's you test its functionality
+- Reads a DFA either from the command line or a previously stored file and then let's you test its functionality
 - Stores configuration files for automata that you have created in the command line
 
 ## Usage

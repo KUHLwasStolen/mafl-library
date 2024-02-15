@@ -61,5 +61,7 @@ Move your compiled file to a folder that's included in your PATH variable and no
 It basically works like any other command line tool:  
 Type `mafl --help` or `mafl -h` to get a detailed list of everything that the tool can do or type `mafl -?` to get a shorter version of this without explanations.  
 
-Have fun with it!  
+&nbsp;  
+
+And last but not least: have fun with your new tool!  
 If you have questions/problems feel free to open a new issue.

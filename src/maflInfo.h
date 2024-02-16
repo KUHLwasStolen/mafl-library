@@ -4,5 +4,6 @@
 void listUsage();
 void listShort();
 void printLogo();
+void printVersion();
 
 #endif

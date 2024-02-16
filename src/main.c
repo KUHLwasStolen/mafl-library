@@ -13,12 +13,14 @@ int main(int argc, char* args[]) {
             listShort();
         } else if(strcmp(args[1], "--dfa") == 0 || strcmp(args[1], "-dfa") == 0) {
             newDFA(0, 0);
+        } else if(strcmp(args[1], "--version") == 0 || strcmp(args[1], "-v") == 0) {
+            printVersion();
         }
 
     } else if(argc == 3) {
         if(strcmp(args[1], "--dfa") == 0 || strcmp(args[1], "-dfa") == 0) {
             if(strcmp(args[2], "--save") == 0 || strcmp(args[2], "-s") == 0) {
-                newDFA(1, 0);
+                newDFA("", 0);
             }
         }
 
@@ -28,6 +30,16 @@ int main(int argc, char* args[]) {
                 newDFA(0, args[3]);
             }
         }
+
+    } else if(argc == 5) {
+        if(strcmp(args[1], "--dfa") == 0 || strcmp(args[1], "-dfa") == 0) {
+            if(strcmp(args[2], "--save") == 0 || strcmp(args[2], "-s") == 0) {
+                if(strcmp(args[3], "--name") == 0 || strcmp(args[3], "-n") == 0) {
+                    newDFA(args[4], 0);
+                }
+            }
+        }
+
     } else {
         printLogo();
         printf_s("For information on how to use mafl type \'mafl.exe --help\'\n");

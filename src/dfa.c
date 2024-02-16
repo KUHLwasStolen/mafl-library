@@ -8,7 +8,7 @@
 
 #define SIZE 251
 
-void newDFA(int, char*);
+void newDFA(char*, char*);
 
 void** enterDFA();
 void formatForPrint(const char, const char, char*, const int, int*);
@@ -20,12 +20,12 @@ int checkValidity(char*, int*, const int);
 void testDFA(void**);
 int findLoc(char*, char*, int*, const int);
 
-void saveDFA(void**);
+void saveDFA(void**, char*);
 
 void** readDFA(char*);
 int getSection(char*);
 
-void newDFA(int save, char* read) {
+void newDFA(char* save, char* read) {
     void** dfa = NULL;
     if(read == 0) {
         dfa = (void**)enterDFA();
@@ -36,7 +36,7 @@ void newDFA(int save, char* read) {
     if(dfa == 0) return;
     testDFA(dfa);
 
-    if(save == 1) saveDFA(dfa);
+    if(save != 0) saveDFA(dfa, save);
 
     // free memory
     for(int i = 0; i < 9; i++) {
@@ -263,7 +263,7 @@ void testDFA(void** dfaConfig) {
 
 
 
-void saveDFA(void** dfaConfig) {
+void saveDFA(void** dfaConfig, char* name) {
     // Load DFA config
     char* states = dfaConfig[0];
     int* stateCount = dfaConfig[1];
@@ -275,11 +275,26 @@ void saveDFA(void** dfaConfig) {
     int* startingState = dfaConfig[7];
     int* acceptingStates = dfaConfig[8];
 
-    // Filename with randomly generated number
-    srand(time(0));
-    int random = rand() % 10000;
-    char filename[18];
-    sprintf(filename, "savedDFA%d.txt", random);
+    char* filename = NULL;
+    if(strcmp(name, "") == 0) {
+        // Filename with randomly generated number
+        srand(time(0));
+        int random = rand() % 10000;
+        filename = calloc(17, sizeof(char));
+        if(filename == NULL) {
+            printf_s("Memory allocation error!\n");
+            return;
+        }
+        sprintf(filename, "savedDFA%d.txt", random);
+    } else {
+        // User-specified filename
+        filename = calloc(strlen(name) + 5, sizeof(char));
+        if(filename == NULL) {
+            printf_s("Memory allocation error!\n");
+            return;
+        }
+        sprintf(filename, "%s.txt", name);
+    }
 
     FILE *fp = fopen(filename, "w");
     if(fp == NULL) {
@@ -329,7 +344,10 @@ void saveDFA(void** dfaConfig) {
     fprintf(fp, "##\n");
 
     fclose(fp);
-    printf_s("\nDFA sucessfully saved in \'%s\'\n!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n", filename);
+    printf_s("\nDFA sucessfully saved in \'%s\'\n", filename);
+    if(strcmp(name, "") == 0) {
+        printf_s("!!! Make sure to rename that file to avoid it being overwritten in the future !!!\n(Chance 1 : 10000)\n");
+    }
 }
 
 
@@ -360,6 +378,7 @@ void** readDFA(char* filename) {
     // Check correct allocation for all at once
     if(states == 0 || stateCount == 0 || symbols == 0 || symbolCount == 0 || startingState == 0 || dfaConfig == 0) {
         printf_s("\nMemory allocation error! Exiting!\n");
+        fclose(fp);
         return 0;
     }
 
@@ -387,6 +406,7 @@ void** readDFA(char* filename) {
         }
         if(readChar < 0) {
             printf_s("\nEnd of file reached before all arguments were read! Exiting!\n");
+            fclose(fp);
             return 0;
         }
         
@@ -411,6 +431,7 @@ void** readDFA(char* filename) {
                 acceptingStates = calloc(*stateCount, sizeof(int));
                 if(stateLocs == NULL || acceptingStates == NULL) {
                     printf_s("\nMemory allocation error! Exiting!\n");
+                    fclose(fp);
                     return 0;
                 }
                 break;
@@ -432,6 +453,7 @@ void** readDFA(char* filename) {
                 transitionFunc = calloc((*symbolCount) * (*stateCount), sizeof(int));
                 if(symbolLocs == NULL || transitionFunc == NULL) {
                     printf_s("\nMemory allocation error! Exiting!\n");
+                    fclose(fp);
                     return 0;
                 }
                 break;
@@ -453,6 +475,7 @@ void** readDFA(char* filename) {
                 break;
             default:
                 printf_s("\nSomething went wrong while reading a config!\n");
+                fclose(fp);
                 return 0;
         }
 

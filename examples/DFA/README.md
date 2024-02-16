@@ -6,7 +6,7 @@
 In this chapter of our examples, we will cover everything you need to know about DFAs in mafl.  
 *(DFA = **D**eterministic **F**inite **A**utomaton)*  
 To illustrate everything that mafl can do with DFAs we will use an automaton which decides the Language $L_{1}$:  
-$$L_{1} := \{a^{n*3} \hspace{3mm}|\hspace{3mm} n \in \N_{0}\}$$  
+$$L_{1} := \\{ a^{n*3} \hspace{3mm}|\hspace{3mm} n \in \mathbb{N}_{0} \\}$$  
 In spoken words: All valid inputs are those who are made up of only a's and where the amount of a's is divisable by 3.  
 This is achievable with a simple automaton with 3 states. Let's skip a formal definition and let's [enter it directly into the CLI](#from-the-terminal).  
 

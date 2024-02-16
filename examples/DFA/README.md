@@ -7,7 +7,7 @@ In this chapter of our examples, we will cover everything you need to know about
 *(DFA = **D**eterministic **F**inite **A**utomaton)*  
 To illustrate everything that mafl can do with DFAs we will use an automaton which decides the Language $L_{1}$:  
 $$L_{1} := \\{ a^{n*3} \hspace{3mm}|\hspace{3mm} n \in \mathbb{N}_{0} \\}$$  
-In spoken words: All valid inputs are those who are made up of only a's and where the amount of a's is divisable by 3.  
+Written out: All valid inputs are those who are made up of only a's and where the amount of a's is divisable by 3.  
 This is achievable with a simple automaton with 3 states. Let's skip a formal definition and let's [enter it directly into the CLI](#from-the-terminal).  
 
 &nbsp;  
@@ -101,8 +101,75 @@ If everything went right and if not specified differently, you will now enter th
 
 ### From a file
 
-A more convenient way to enter a DFA into `mafl` is to read it from a previously saved configuration file.
+A more convenient way to enter a DFA into `mafl` is to read it from a previously saved configuration file. This is especially useful if you want to reuse one specific automaton multiple times.  
+
+How do we get such a file? This is covered in the [next section](#saving-dfas).  
+
+If you already have a presaved config you can read it like this:  
+~~~
+mafl --dfa --read <file>
+~~~
+Alternatively like this:
+~~~
+mafl -dfa -r <file>
+~~~
+Or a combination of both.  
+
+Let's try it out with our example from the beginning. If you don't have a file for this specific DFA yet, you can get it [here](/examples/DFA/DFAexample01.txt).  
+We can load this specific file like this for example:
+~~~
+mafl --dfa -r DFAexample01.txt
+~~~
+*(This only applies if you are in the same directory of course, find your file with the help of `TAB` to be more sure)*  
+
+If everything went right, you should now see the standard testing environment of `mafl`. If you are not familiar with it yet, it is described in detail [here](#testing-dfas).
 
 ## Saving DFAs
 
+If you need a specific DFA more than once, you can save it for later by letting `mafl` create a configuration file for it.  
+You need to decide if you want to save it before running the program. If you are unsure, whether you want to save it or not, saving it is the wiser option, as it doesn't take much storage and you can always delete it later.  
+
+To save a DFA you basically have to options:  
+~~~
+mafl --dfa --save
+~~~
+This will save your automaton and give it a random name of this form: `savedDFA1234.txt`  
+You should rename that file immediatly after it was generated, because **theoretically** it could be overwritten if the program randomly generated the same name again. There is a 1 : 10000 chance for this, but better safe than sorry.  
+
+To avoid this altogether you can name your DFA from the beginning on:  
+~~~
+mafl -dfa -s --name <filename>
+~~~
+The automaton will be saved in a file according to your specification. Do not include any file extension here. The program will handle that for you.  
+So for example if we run...
+~~~
+mafl -dfa -s -n awesomeDFA42
+~~~
+...a file with the name `awesomeDFA42.txt` will be created which contains all the necessary information to [read](#from-a-file) the automaton later.  
+
+If you take a look into the file you will probably be able to understand most of the entries there.  
+**Still**, I strongly advise against modifying your DFA by editing the text-file that was created. Do this on your own "risk", if you still want to try it.  
+*(There is no real "risk", but the probability of it doing what you expected it to do is very low)*
+
 ## Testing DFAs
+
+The testing mode for your DFA automatically starts after it was entered. No matter **how** it was entered.  
+
+The program will tell you in which state the automaton currently is and whether this is an accepting state or not.  
+You can enter the word you want to test symbol by symbol, which allows you to observe each step.  
+At the beginning the program will also tell you the symbols you may use, which is great if you haven't used the DFA recently.  
+
+To quit the testing mode, just type something that is not part of the input alphabet.  
+If you set the `--save` when you started the program, do not exit the testing mode with `^C`. This will cause the program to halt immediatly and skip the saving step.  
+Only do this, if you are unhappy with the behaviour of your automaton and you don't want to keep it.  
+
+&nbsp;  
+
+That's it! These are the basics of using DFAs in `mafl`.  
+For further reference along the way you can consult one of the following options...
+~~~
+mafl --help
+mafl -h
+mafl -?
+~~~
+...or open a new issue if you can't figure something out on your own. We are always happy to help :)

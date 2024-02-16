@@ -42,7 +42,8 @@ int main(int argc, char* args[]) {
 
     } else {
         printLogo();
-        printf_s("For information on how to use mafl type \'mafl.exe --help\'\n");
+        printf_s("For information on how to use mafl type \'mafl --help\'\n\n");
+        printVersion();
         return 0;
     }
     

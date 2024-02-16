@@ -11,7 +11,7 @@ void printLogo();
 void printVersion();
 
 void listUsage() {
-    printf_s("mafl version \'%s\'\nUsage: mafl.exe [Argument] [Options...]\n", VERSION);
+    printf_s("mafl version \'%s\'\nUsage: \'mafl [Argument] [Options...]\'\n", VERSION);
     // General
     printf_s("\nGeneral arguments:\n");
     //  --help

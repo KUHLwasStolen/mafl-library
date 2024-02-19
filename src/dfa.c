@@ -25,6 +25,8 @@ void saveDFA(void**, char*);
 void** readDFA(char*);
 int getSection(char*);
 
+void** minimizeDFA(void**);
+
 void newDFA(char* save, char* read) {
     void** dfa = NULL;
     if(read == 0) {
@@ -35,6 +37,7 @@ void newDFA(char* save, char* read) {
     
     if(dfa == 0) return;
     testDFA(dfa);
+    minimizeDFA(dfa);
 
     if(save != 0) saveDFA(dfa, save);
 
@@ -508,6 +511,120 @@ void** readDFA(char* filename) {
     dfaConfig[8] = acceptingStates;
 
     return dfaConfig;
+}
+
+
+
+// This method will utilize the so called table construction method
+void** minimizeDFA(void** dfaConfig) {
+    char* states = dfaConfig[0];
+    int* stateCount = dfaConfig[1];
+    int* stateLocs = dfaConfig[2];
+    char* symbols = dfaConfig[3];
+    int* symbolCount = dfaConfig[4];
+    int* symbolLocs = dfaConfig[5];
+    int* transitionFunc = dfaConfig[6];
+    int* startingState = dfaConfig[7];
+    int* acceptingStates = dfaConfig[8];
+
+    
+    if((*stateCount) <= 1) {
+        // If there is only one state (or less???) there is nothing to minimize
+        return dfaConfig;
+    }
+
+    // set up a 'matrix' with all combinations of states
+    // we will mark (set to 1) states here that we know are different from each other
+    int differenceMatrix[*stateCount][*stateCount ];
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            differenceMatrix[i][j] = 0;
+        }
+    }
+
+    /* Visualization of the matrix if stateCount is 4 and states: q0, q1, q2, q3
+    ----|----|----|----|----|
+     q0 |    |    |    |    |
+    ----|----|----|----|----|
+     q1 |    |    |    |    |
+    ----|----|----|----|----|
+     q2 |    |    |    |    |
+    ----|----|----|----|----|
+     q3 |    |    |    |    |
+    ----|----|----|----|----|
+        | q0 | q1 | q2 | q3 |
+
+    We can ignore all state combinations of a state with itself, e.g. (q1, q1)
+    Also combinations such as (q1, q3) and (q3, q1) are the same
+    --> So in real-life we would construct a matrix more like this:
+    ----|----|
+     q1 |    |
+    ----|----|----|
+     q2 |    |    |
+    ----|----|----|----|
+     q3 |    |    |    |
+    ----|----|----|----|
+        | q0 | q1 | q2 |
+
+    But to keep the implementation of the algorithm simple, we create a matrix as shown above
+    */
+
+    // now we mark all combinations where one state is accepting and the other is not
+    // we definitely know that they are not the same
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(acceptingStates[i] == 1 && acceptingStates[j] != 1) {
+                differenceMatrix[i][j] = 1;
+            }
+        }
+    }
+
+    /* now we need helper tables for the remaining checks
+    Basic method:
+    We find out where each state goes with one of the symbols (we repeat this for all symbols)
+    Let's say q1 goes to q2 and q2 goes to q3
+    Then we check if (q2, q3) is marked in our main matrix/table
+    If yes: we mark (q1, q2) in the main table
+    If no: do nothing
+
+    As said we repeat this for all symbols
+    And we also repeat this whole procedure until the main table doesn't change anymore
+    */    
+
+    int markChanges, iGoesTo, jGoesTo;
+    do {
+        markChanges = 0;
+
+        for(int c = 0; c < (*symbolCount); c++) {
+            for(int i = 0; i < (*stateCount); i++) {
+                iGoesTo = transitionFunc[(i * (*symbolCount)) + c];
+
+                for(int j = 0; j < (*stateCount); j++) {
+                    jGoesTo = transitionFunc[(j * (*symbolCount)) + c];
+
+                    if(differenceMatrix[iGoesTo][jGoesTo] == 1 && differenceMatrix[i][j] == 0) {
+                        markChanges++;
+                        differenceMatrix[i][j] = 1;
+                    }
+                }
+            }
+        }
+        
+    } while(markChanges != 0);
+
+    // Now we have identified all states that are different
+    // That also means that we have identified all the states that are NOT different
+    // We can merge such states (that are not marked in the matrix)
+
+    // temporary: print results (algorithm works atm)
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            printf_s("%d\t", differenceMatrix[i][j]);
+        }
+        puts("");
+    }
+
+    return 0;
 }
 
 

@@ -48,12 +48,19 @@ none at the moment :(
 
 ## Usage
 
-Of course before you can use it, you need an executable file on your system. To get this I recommend downloading the source code from the `trunk` branch and then compiling it (with gcc) in its folder like this:
+Of course before you can use it, you need an executable file on your system. To get this I recommend downloading the source code from the `trunk` branch and then compiling it (with gcc) in its folder.  
+Run:  
 ~~~
+git clone https://github.com/KUHLwasStolen/mafl-library.git
+
+cd mafl-library/src
+// On Windows: cd mafl-library\src
+
 gcc *.c -o mafl
 ~~~
 *(gcc is recommended as the code gets tested with it, I cannot promise compatibility with other compilers)*
 
+The `-o` flag specifies the name of the compiled file. You can change this if you want but then the documentation and all references in the program itself don't make sense anymore.  
 Move your compiled file to a folder that's included in your PATH variable and now you're ready to use it anywhere!  
 
 It basically works like any other command line tool:  

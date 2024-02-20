@@ -617,34 +617,43 @@ void** minimizeDFA(void** dfaConfig) {
     // We can merge such pairs (that are not marked in the matrix)
 
     int usedStateCount = 0;
-    int usedStates[*stateCount];
-    for(int i = 0; i < (*stateCount); i++)
-        usedStates[i] = 0;
     int newStateCount = 0;
 
+    int usedStates[*stateCount];
     for(int i = 0; i < (*stateCount); i++) {
-        for(int j = 0; j < (*stateCount); j++) {
-            printf_s("%d\t", differenceMatrix[i][j]);
-        }
-        puts("");
+        usedStates[i] = 0;
     }
 
+    int filteredDiffMatr[*stateCount][*stateCount];
     for(int i = 0; i < (*stateCount); i++) {
         for(int j = 0; j < (*stateCount); j++) {
-            if(usedStateCount == (*stateCount)) break;
+            filteredDiffMatr[i][j] = 0;
+        }
+    }
 
-            if(usedStates[i] == 1 || usedStates[j] == 1) continue;
+    // this creates a simple way to merge the states
+    // simplified: flips all entries in the diffMatr and removes repeated pairs
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(usedStateCount == (*stateCount) || usedStates[i] == 1) break;
 
             if(differenceMatrix[i][j] == 0) {
                 usedStateCount++;
-                usedStates[j] = 1;
-                if(i == j) newStateCount++;
+                filteredDiffMatr[i][j] = 1;
+
+                if(i == j) {
+                    newStateCount++;
+                } else {
+                    usedStates[j] = 1;
+                }
             }
         }
         if(usedStateCount == (*stateCount)) break;
     }
 
-    printf_s("%d --> %d\n", usedStateCount, newStateCount);
+    // let's allocate memory for the new, minimal DFA
+    char *newStates = NULL;
+    // ...
 
     return 0;
 }

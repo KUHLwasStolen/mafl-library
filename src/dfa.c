@@ -614,15 +614,37 @@ void** minimizeDFA(void** dfaConfig) {
 
     // Now we have identified all states that are different
     // That also means that we have identified all the states that are NOT different
-    // We can merge such states (that are not marked in the matrix)
+    // We can merge such pairs (that are not marked in the matrix)
 
-    // temporary: print results (algorithm works atm)
+    int usedStateCount = 0;
+    int usedStates[*stateCount];
+    for(int i = 0; i < (*stateCount); i++)
+        usedStates[i] = 0;
+    int newStateCount = 0;
+
     for(int i = 0; i < (*stateCount); i++) {
         for(int j = 0; j < (*stateCount); j++) {
             printf_s("%d\t", differenceMatrix[i][j]);
         }
         puts("");
     }
+
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(usedStateCount == (*stateCount)) break;
+
+            if(usedStates[i] == 1 || usedStates[j] == 1) continue;
+
+            if(differenceMatrix[i][j] == 0) {
+                usedStateCount++;
+                usedStates[j] = 1;
+                if(i == j) newStateCount++;
+            }
+        }
+        if(usedStateCount == (*stateCount)) break;
+    }
+
+    printf_s("%d --> %d\n", usedStateCount, newStateCount);
 
     return 0;
 }

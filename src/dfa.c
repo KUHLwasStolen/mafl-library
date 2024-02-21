@@ -652,8 +652,70 @@ void** minimizeDFA(void** dfaConfig) {
     }
 
     // let's allocate memory for the new, minimal DFA
-    char *newStates = NULL;
-    // ...
+    char *minStates = NULL;
+    int *minStateCount, *minTransitionFunc, *minStartingState, *minAcceptingStates, *minStateLocs;
+    minStateCount = minTransitionFunc = minStateLocs = minStartingState = minAcceptingStates = NULL;
+    void **minDFA = NULL;
+    // symbols, symbolCount, symbolLocs stay the same
+    
+    minStates = (char*)calloc(SIZE, sizeof(char));
+    minStateCount = (int*)calloc(1, sizeof(int));
+    minStateLocs = (int*)calloc(newStateCount, sizeof(int));
+    minStartingState = (int*)calloc(1, sizeof(int));
+    minAcceptingStates = (int*)calloc(newStateCount, sizeof(int));
+    minTransitionFunc = (int*)calloc(newStateCount * (*symbolCount), sizeof(int));
+    minDFA = (void**)calloc(9, sizeof(void*));
+
+    if(minStates == 0 || minStateCount == 0 || minStateLocs == 0 || minStartingState == 0 || minAcceptingStates == 0 || minTransitionFunc == 0 || minDFA == 0) {
+        printf_s("\nMemory allocation error!\n");
+        return 0;
+    }
+
+    *minStateCount = newStateCount;
+
+    // now we create the new state strings, the starting states, accepting states
+    // and the tranition function
+    usedStateCount = 0; // reusing this variable for counting string pos
+    int currentState = 0;
+    int modified = 0;
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(filteredDiffMatr[i][j] == 1) {
+                // strings
+                usedStateCount += strlen(&states[stateLocs[j]]);
+                strcat(minStates, &states[stateLocs[j]]);
+                modified = 1;
+
+                // starting state
+                if(j == *startingState) {
+                    *minStartingState = currentState;
+                }
+
+                // accepting states
+                if(acceptingStates[j] == 1) {
+                    minAcceptingStates[currentState] = 1;
+                }
+
+                // transition function
+                
+            }
+        }
+
+        if(modified == 1) {
+            minStates[usedStateCount] = ',';
+            currentState++;
+            usedStateCount++;
+        }
+        modified = 0;
+    }
+
+    formatForPrint(',', '\0', minStates, SIZE, minStateLocs);
+
+    // test
+    for(int i = 0; i < newStateCount; i++) {
+        printf_s("%d: %s (acc: %d)\n", i, &minStates[minStateLocs[i]], minAcceptingStates[i]);
+    }
+    printf_s("start: %d", *minStartingState);
 
     return 0;
 }

@@ -3,7 +3,7 @@
 #include "maflInfo.h"
 #include "generalDefs.h"
 
-#define VERSION "V0.1.2"
+#define VERSION "V0.1.3"
 
 void listUsage();
 void listShort();
@@ -37,6 +37,8 @@ void listUsage() {
     printf_s("\t\t\t\t\tDo not include any file extension here\n");
     //      --read
     printf_s("\n\t\t\t--read <file>, -r <file>\n\t\t\t\tReads a previously saved automaton config from <file>\n");
+    //      --minimize
+    printf_s("\n\t\t\t--minimize, -m\n\t\t\t\tMinimizes a read automaton (either manual or from file)\n\t\t\t\tIf combined with \'--save\' only the minimal DFA is saved\n");
 }
 
 void listShort() {
@@ -64,6 +66,8 @@ void listShort() {
     printf_s("\t\t\t\t--name <filename>, -n <filename>\n");
     //      --read
     printf_s("\t\t\t--read <file>, -r <file>\n");
+    //      --minimize
+    printf_s("\t\t\t--minimize, -m\n");
 }
 
 void printLogo() {

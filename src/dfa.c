@@ -8,7 +8,7 @@
 
 #define SIZE 251
 
-void newDFA(char*, char*);
+void newDFA(char*, char*, int);
 
 void** enterDFA();
 void formatForPrint(const char, const char, char*, const int, int*);
@@ -25,15 +25,19 @@ void saveDFA(void**, char*);
 void** readDFA(char*);
 int getSection(char*);
 
-void newDFA(char* save, char* read) {
+void** minimizeDFA(void**);
+
+void newDFA(char* save, char* read, int minimize) {
     void** dfa = NULL;
     if(read == 0) {
         dfa = (void**)enterDFA();
     } else {
         dfa = (void**)readDFA(read);
     }
-    
     if(dfa == 0) return;
+
+    if(minimize != 0) dfa = minimizeDFA(dfa);
+
     testDFA(dfa);
 
     if(save != 0) saveDFA(dfa, save);
@@ -233,14 +237,13 @@ void testDFA(void** dfaConfig) {
     int currentState = *startingState;
     int currentSymbol;
 
-    printf_s("\nThe automaton starts in state \'%s\'\n", &states[stateLocs[currentState]]);
-    printf_s("This is %san accepting state.\n", acceptingStates[currentState] ? "" : "not ");
-    printf_s("The available symbol%s: ", *symbolCount == 1 ? " is" : "s are");
+    printf_s("\nThe available symbol%s: ", *symbolCount == 1 ? " is" : "s are");
     for(int i = 0; i < *symbolCount; i++) {
         printf_s("\'%s\'%c ", &symbols[symbolLocs[i]], i == (*symbolCount) - 1 ? '\0' : ',');
     }
-    puts("");
-    printf_s("To end testing enter a symbol not part of the valid symbols.\nEnter one(!) symbol to be the first input of your DFA: ");
+    printf_s("\n\nThe automaton starts in state \'%s\'\n", &states[stateLocs[currentState]]);
+    printf_s("This is %san accepting state.\n", acceptingStates[currentState] ? "" : "not ");
+    printf_s("\nTo end testing enter a symbol not part of the valid symbols.\nEnter one(!) symbol to be the first input of your DFA: ");
 
     while(1) {
         fflush(stdin);
@@ -256,7 +259,7 @@ void testDFA(void** dfaConfig) {
         currentSymbol = findLoc(inputSymbol, symbols, symbolLocs, *symbolCount);
 
         currentState = *(transitionFunc + (currentState * (*symbolCount)) + currentSymbol);
-        printf_s("The DFA is now in state \'%s\'\nThis is %san accepting state.\n", &states[stateLocs[currentState]], acceptingStates[currentState] ? "" : "not ");
+        printf_s("\nThe DFA is now in state \'%s\'\nThis is %san accepting state.\n", &states[stateLocs[currentState]], acceptingStates[currentState] ? "" : "not ");
         printf_s("\nNext symbol: ");
     }
 }
@@ -400,7 +403,7 @@ void** readDFA(char* filename) {
 
         // this while loop reads one whole line (ommits the \n)
         while(readChar >= 0 && readChar != '\n') {
-            sprintf(charBlock, "%c\0", readChar);
+            sprintf(charBlock, "%c", readChar);
             strcat(readLine, charBlock);
             readChar = fgetc(fp);
         }
@@ -508,6 +511,255 @@ void** readDFA(char* filename) {
     dfaConfig[8] = acceptingStates;
 
     return dfaConfig;
+}
+
+
+
+// This method will utilize the so called table construction method
+void** minimizeDFA(void** dfaConfig) {
+    char* states = dfaConfig[0];
+    int* stateCount = dfaConfig[1];
+    int* stateLocs = dfaConfig[2];
+    char* symbols = dfaConfig[3];
+    int* symbolCount = dfaConfig[4];
+    int* symbolLocs = dfaConfig[5];
+    int* transitionFunc = dfaConfig[6];
+    int* startingState = dfaConfig[7];
+    int* acceptingStates = dfaConfig[8];
+
+    
+    if((*stateCount) <= 1) {
+        // If there is only one state (or less???) there is nothing to minimize
+        return dfaConfig;
+    }
+
+    // set up a 'matrix' with all combinations of states
+    // we will mark (set to 1) states here that we know are different from each other
+    int differenceMatrix[*stateCount][*stateCount ];
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            differenceMatrix[i][j] = 0;
+        }
+    }
+
+    /* Visualization of the matrix if stateCount is 4 and states: q0, q1, q2, q3
+    ----|----|----|----|----|
+     q0 |    |    |    |    |
+    ----|----|----|----|----|
+     q1 |    |    |    |    |
+    ----|----|----|----|----|
+     q2 |    |    |    |    |
+    ----|----|----|----|----|
+     q3 |    |    |    |    |
+    ----|----|----|----|----|
+        | q0 | q1 | q2 | q3 |
+
+    We can ignore all state combinations of a state with itself, e.g. (q1, q1)
+    Also combinations such as (q1, q3) and (q3, q1) are the same
+    --> So in real-life we would construct a matrix more like this:
+    ----|----|
+     q1 |    |
+    ----|----|----|
+     q2 |    |    |
+    ----|----|----|----|
+     q3 |    |    |    |
+    ----|----|----|----|
+        | q0 | q1 | q2 |
+
+    But to keep the implementation of the algorithm simple, we create a matrix as shown above
+    */
+
+    // now we mark all combinations where one state is accepting and the other is not
+    // we definitely know that they are not the same
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(acceptingStates[i] == 1 && acceptingStates[j] != 1) {
+                differenceMatrix[i][j] = 1;
+            }
+        }
+    }
+
+    /* now we need helper tables for the remaining checks
+    Basic method:
+    We find out where each state goes with one of the symbols (we repeat this for all symbols)
+    Let's say q1 goes to q2 and q2 goes to q3
+    Then we check if (q2, q3) is marked in our main matrix/table
+    If yes: we mark (q1, q2) in the main table
+    If no: do nothing
+
+    As said we repeat this for all symbols
+    And we also repeat this whole procedure until the main table doesn't change anymore
+    */    
+
+    int markChanges, iGoesTo, jGoesTo;
+    do {
+        markChanges = 0;
+
+        for(int c = 0; c < (*symbolCount); c++) {
+            for(int i = 0; i < (*stateCount); i++) {
+                iGoesTo = transitionFunc[(i * (*symbolCount)) + c];
+
+                for(int j = 0; j < (*stateCount); j++) {
+                    jGoesTo = transitionFunc[(j * (*symbolCount)) + c];
+
+                    if(differenceMatrix[iGoesTo][jGoesTo] == 1 && differenceMatrix[i][j] == 0) {
+                        markChanges++;
+                        differenceMatrix[i][j] = 1;
+                    }
+                }
+            }
+        }
+        
+    } while(markChanges != 0);
+
+    // Now we have identified all states that are different
+    // That also means that we have identified all the states that are NOT different
+    // We can merge such pairs (that are not marked in the matrix)
+
+    int usedStateCount = 0;
+    int newStateCount = 0;
+
+    int usedStates[*stateCount];
+    for(int i = 0; i < (*stateCount); i++) {
+        usedStates[i] = 0;
+    }
+
+    int filteredDiffMatr[*stateCount][*stateCount];
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            filteredDiffMatr[i][j] = 0;
+        }
+    }
+
+    // this creates a simple way to merge the states
+    // simplified: flips all entries in the diffMatr and removes repeated pairs
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(usedStateCount == (*stateCount) || usedStates[i] == 1) break;
+
+            if(differenceMatrix[i][j] == 0) {
+                usedStateCount++;
+                filteredDiffMatr[i][j] = 1;
+
+                if(i == j) {
+                    newStateCount++;
+                } else {
+                    usedStates[j] = 1;
+                }
+            }
+        }
+        if(usedStateCount == (*stateCount)) break;
+    }
+
+    // let's allocate memory for the new, minimal DFA
+    char *minStates = NULL;
+    int *minStateCount, *minTransitionFunc, *minStartingState, *minAcceptingStates, *minStateLocs;
+    minStateCount = minTransitionFunc = minStateLocs = minStartingState = minAcceptingStates = NULL;
+    void **minDFA = NULL;
+    // symbols, symbolCount, symbolLocs stay the same
+    
+    minStates = (char*)calloc(SIZE, sizeof(char));
+    minStateCount = (int*)calloc(1, sizeof(int));
+    minStateLocs = (int*)calloc(newStateCount, sizeof(int));
+    minStartingState = (int*)calloc(1, sizeof(int));
+    minAcceptingStates = (int*)calloc(newStateCount, sizeof(int));
+    minTransitionFunc = (int*)calloc(newStateCount * (*symbolCount), sizeof(int));
+    minDFA = (void**)calloc(9, sizeof(void*));
+
+    if(minStates == 0 || minStateCount == 0 || minStateLocs == 0 || minStartingState == 0 || minAcceptingStates == 0 || minTransitionFunc == 0 || minDFA == 0) {
+        printf_s("\nMemory allocation error!\n");
+        return 0;
+    }
+
+    *minStateCount = newStateCount;
+
+    // now we create the new state strings, the starting states, accepting states
+    // and a lookup table to determine the new tranistion function 
+    // (basically a mapping where we enter an old state number get the new equivaltent)
+    usedStateCount = 0; // reusing this variable for counting string pos
+    int currentState = 0;
+    int modified = 0;
+    int lookupTable[*stateCount];
+    for(int i = 0; i < (*stateCount); i++) {
+        // initializing to something that will not be there after the assignment (if everything worked)
+        lookupTable[i] = -1;
+    }
+
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*stateCount); j++) {
+            if(filteredDiffMatr[i][j] == 1) {
+                // strings
+                usedStateCount += strlen(&states[stateLocs[j]]);
+                strcat(minStates, &states[stateLocs[j]]);
+                modified = 1;
+
+                // starting state
+                if(j == *startingState) {
+                    *minStartingState = currentState;
+                }
+
+                // accepting states
+                if(acceptingStates[j] == 1) {
+                    minAcceptingStates[currentState] = 1;
+                }
+
+                // lookup table
+                lookupTable[j] = currentState;
+            }
+        }
+
+        if(modified == 1) {
+            minStates[usedStateCount] = ',';
+            currentState++;
+            usedStateCount++;
+        }
+        modified = 0;
+    }
+
+    formatForPrint(',', '\0', minStates, SIZE, minStateLocs);
+
+    // now we create the new transition function using the lookup table
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*symbolCount); j++) {
+            minTransitionFunc[(lookupTable[i] * (*symbolCount)) + j] = lookupTable[transitionFunc[(i * (*symbolCount)) + j]];
+        }
+    }
+
+    // show the user the results
+    printf_s("\nGot rid of %d states (%d --> %d)\n", (*stateCount) - (*minStateCount), *stateCount, *minStateCount);
+    printf_s("The new states are:\n");
+    for(int i = 0; i < (*minStateCount); i++) {
+        printf_s("\'%s\' %s\n", &minStates[minStateLocs[i]], minAcceptingStates[i] == 1 ? ((*minStartingState) == i ? "(accepting, starting)" : "(accepting)") : ((*minStartingState) == i ? "(starting)" : ""));
+    }
+    printf_s("\nThe new transition function:\n");
+    for(int i = 0; i < (*minStateCount); i++) {
+        for(int j = 0; j < (*symbolCount); j++) {
+            printf_s("d(%s, %s) = %s\n", &minStates[minStateLocs[i]], &symbols[symbolLocs[j]], &minStates[minStateLocs[minTransitionFunc[(i * (*symbolCount)) + j]]]);
+        }
+    }
+
+    printf_s("\nThe automaton you will be testing is the minimal one.\n");
+
+    // free the memory from the old automaton that's not needed anymore
+    free(states);
+    free(stateCount);
+    free(stateLocs);
+    free(acceptingStates);
+    free(startingState);
+    free(transitionFunc);
+
+    // assign new, minimized DFA
+    minDFA[0] = minStates;
+    minDFA[1] = minStateCount;
+    minDFA[2] = minStateLocs;
+    minDFA[3] = symbols;
+    minDFA[4] = symbolCount;
+    minDFA[5] = symbolLocs;
+    minDFA[6] = minTransitionFunc;
+    minDFA[7] = minStartingState;
+    minDFA[8] = minAcceptingStates;    
+
+    return minDFA;
 }
 
 

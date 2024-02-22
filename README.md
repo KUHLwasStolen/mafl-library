@@ -20,7 +20,7 @@ Useful command line tools for people interested in mathematics and computer scie
 2. [Features](#features)  
 2.1 [Mathematics](#mathematics)  
 2.2 [Computer Science](#computer-science)
-3. [Usage](#usage)
+3. [Installing](#installing)
 
 ## About
 
@@ -36,6 +36,9 @@ Now that the scope of the project is clear let's dig into the details.
 
 ## Features
 
+To get a detailed list of features run `mafl --help` after the [installation](#installing).  
+The following list provides a short and comprehensive overview.  
+
 ### Mathematics
 
 none at the moment :(  
@@ -45,15 +48,26 @@ none at the moment :(
 **DFA** *(Deterministic Finite Automaton)*  
 - Reads a DFA either from the command line or a previously stored file and then let's you test its functionality
 - Stores configuration files for automata that you have created in the command line
+- Minimizes a given DFA using the table-construction method
 
-## Usage
+## Installing
 
-Of course before you can use it, you need an executable file on your system. To get this I recommend downloading the source code from the `trunk` branch and then compiling it (with gcc) in its folder like this:
+Of course before you can use it, you need an executable file on your system. To get this I recommend downloading the source code from the `trunk` branch and then compiling it (with gcc) in its folder.  
+Run:  
 ~~~
-gcc *.c -o mafl
+git clone https://github.com/KUHLwasStolen/mafl-library.git
+
+cd mafl-library
+
+gcc ./src/*.c -o mafl
+// On Windows: .\src\*c -o mafl
 ~~~
 *(gcc is recommended as the code gets tested with it, I cannot promise compatibility with other compilers)*
 
+The `-o` flag specifies the name of the compiled file. You can change this if you want but then the documentation and all references in the program itself don't make sense anymore.  
+The compiled file should now be in your current working directory (not `src`).  
+
+Optional:  
 Move your compiled file to a folder that's included in your PATH variable and now you're ready to use it anywhere!  
 
 It basically works like any other command line tool:  

@@ -8,7 +8,7 @@
 
 #define SIZE 251
 
-void newDFA(char*, char*);
+void newDFA(char*, char*, int);
 
 void** enterDFA();
 void formatForPrint(const char, const char, char*, const int, int*);
@@ -27,15 +27,17 @@ int getSection(char*);
 
 void** minimizeDFA(void**);
 
-void newDFA(char* save, char* read) {
+void newDFA(char* save, char* read, int minimize) {
     void** dfa = NULL;
     if(read == 0) {
         dfa = (void**)enterDFA();
     } else {
         dfa = (void**)readDFA(read);
     }
-    
     if(dfa == 0) return;
+
+    if(minimize != 0) dfa = minimizeDFA(dfa);
+
     testDFA(dfa);
 
     if(save != 0) saveDFA(dfa, save);
@@ -235,14 +237,13 @@ void testDFA(void** dfaConfig) {
     int currentState = *startingState;
     int currentSymbol;
 
-    printf_s("\nThe automaton starts in state \'%s\'\n", &states[stateLocs[currentState]]);
-    printf_s("This is %san accepting state.\n", acceptingStates[currentState] ? "" : "not ");
-    printf_s("The available symbol%s: ", *symbolCount == 1 ? " is" : "s are");
+    printf_s("\nThe available symbol%s: ", *symbolCount == 1 ? " is" : "s are");
     for(int i = 0; i < *symbolCount; i++) {
         printf_s("\'%s\'%c ", &symbols[symbolLocs[i]], i == (*symbolCount) - 1 ? '\0' : ',');
     }
-    puts("");
-    printf_s("To end testing enter a symbol not part of the valid symbols.\nEnter one(!) symbol to be the first input of your DFA: ");
+    printf_s("\n\nThe automaton starts in state \'%s\'\n", &states[stateLocs[currentState]]);
+    printf_s("This is %san accepting state.\n", acceptingStates[currentState] ? "" : "not ");
+    printf_s("\nTo end testing enter a symbol not part of the valid symbols.\nEnter one(!) symbol to be the first input of your DFA: ");
 
     while(1) {
         fflush(stdin);
@@ -258,7 +259,7 @@ void testDFA(void** dfaConfig) {
         currentSymbol = findLoc(inputSymbol, symbols, symbolLocs, *symbolCount);
 
         currentState = *(transitionFunc + (currentState * (*symbolCount)) + currentSymbol);
-        printf_s("The DFA is now in state \'%s\'\nThis is %san accepting state.\n", &states[stateLocs[currentState]], acceptingStates[currentState] ? "" : "not ");
+        printf_s("\nThe DFA is now in state \'%s\'\nThis is %san accepting state.\n", &states[stateLocs[currentState]], acceptingStates[currentState] ? "" : "not ");
         printf_s("\nNext symbol: ");
     }
 }
@@ -737,6 +738,7 @@ void** minimizeDFA(void** dfaConfig) {
         }
     }
 
+    printf_s("\nThe automaton you will be testing is the minimal one.\n");
 
     // free the memory from the old automaton that's not needed anymore
     free(states);

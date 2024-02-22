@@ -37,7 +37,6 @@ void newDFA(char* save, char* read) {
     
     if(dfa == 0) return;
     testDFA(dfa);
-    minimizeDFA(dfa);
 
     if(save != 0) saveDFA(dfa, save);
 
@@ -403,7 +402,7 @@ void** readDFA(char* filename) {
 
         // this while loop reads one whole line (ommits the \n)
         while(readChar >= 0 && readChar != '\n') {
-            sprintf(charBlock, "%c\0", readChar);
+            sprintf(charBlock, "%c", readChar);
             strcat(readLine, charBlock);
             readChar = fgetc(fp);
         }
@@ -674,10 +673,17 @@ void** minimizeDFA(void** dfaConfig) {
     *minStateCount = newStateCount;
 
     // now we create the new state strings, the starting states, accepting states
-    // and the tranition function
+    // and a lookup table to determine the new tranistion function 
+    // (basically a mapping where we enter an old state number get the new equivaltent)
     usedStateCount = 0; // reusing this variable for counting string pos
     int currentState = 0;
     int modified = 0;
+    int lookupTable[*stateCount];
+    for(int i = 0; i < (*stateCount); i++) {
+        // initializing to something that will not be there after the assignment (if everything worked)
+        lookupTable[i] = -1;
+    }
+
     for(int i = 0; i < (*stateCount); i++) {
         for(int j = 0; j < (*stateCount); j++) {
             if(filteredDiffMatr[i][j] == 1) {
@@ -696,8 +702,8 @@ void** minimizeDFA(void** dfaConfig) {
                     minAcceptingStates[currentState] = 1;
                 }
 
-                // transition function
-                
+                // lookup table
+                lookupTable[j] = currentState;
             }
         }
 
@@ -711,13 +717,47 @@ void** minimizeDFA(void** dfaConfig) {
 
     formatForPrint(',', '\0', minStates, SIZE, minStateLocs);
 
-    // test
-    for(int i = 0; i < newStateCount; i++) {
-        printf_s("%d: %s (acc: %d)\n", i, &minStates[minStateLocs[i]], minAcceptingStates[i]);
+    // now we create the new transition function using the lookup table
+    for(int i = 0; i < (*stateCount); i++) {
+        for(int j = 0; j < (*symbolCount); j++) {
+            minTransitionFunc[(lookupTable[i] * (*symbolCount)) + j] = lookupTable[transitionFunc[(i * (*symbolCount)) + j]];
+        }
     }
-    printf_s("start: %d", *minStartingState);
 
-    return 0;
+    // show the user the results
+    printf_s("\nGot rid of %d states (%d --> %d)\n", (*stateCount) - (*minStateCount), *stateCount, *minStateCount);
+    printf_s("The new states are:\n");
+    for(int i = 0; i < (*minStateCount); i++) {
+        printf_s("\'%s\' %s\n", &minStates[minStateLocs[i]], minAcceptingStates[i] == 1 ? ((*minStartingState) == i ? "(accepting, starting)" : "(accepting)") : ((*minStartingState) == i ? "(starting)" : ""));
+    }
+    printf_s("\nThe new transition function:\n");
+    for(int i = 0; i < (*minStateCount); i++) {
+        for(int j = 0; j < (*symbolCount); j++) {
+            printf_s("d(%s, %s) = %s\n", &minStates[minStateLocs[i]], &symbols[symbolLocs[j]], &minStates[minStateLocs[minTransitionFunc[(i * (*symbolCount)) + j]]]);
+        }
+    }
+
+
+    // free the memory from the old automaton that's not needed anymore
+    free(states);
+    free(stateCount);
+    free(stateLocs);
+    free(acceptingStates);
+    free(startingState);
+    free(transitionFunc);
+
+    // assign new, minimized DFA
+    minDFA[0] = minStates;
+    minDFA[1] = minStateCount;
+    minDFA[2] = minStateLocs;
+    minDFA[3] = symbols;
+    minDFA[4] = symbolCount;
+    minDFA[5] = symbolLocs;
+    minDFA[6] = minTransitionFunc;
+    minDFA[7] = minStartingState;
+    minDFA[8] = minAcceptingStates;    
+
+    return minDFA;
 }
 
 

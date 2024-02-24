@@ -38,6 +38,8 @@ Now that the scope of the project is clear let's dig into the details.
 
 To get a detailed list of features run `mafl --help` after the [installation](#installing).  
 The following list provides a short and comprehensive overview.  
+And for an in-depth tutorial/explanation on how to use all features take a look into the [examples folder](/examples/).  
+*(Or follow the links in the following features list)*
 
 ### Mathematics
 
@@ -45,7 +47,7 @@ none at the moment :(
 
 ### Computer Science
 
-**DFA** *(Deterministic Finite Automaton)*  
+**[DFA](/examples/DFA/)** *(Deterministic Finite Automaton)*  
 - Reads a DFA either from the command line or a previously stored file and then let's you test its functionality
 - Stores configuration files for automata that you have created in the command line
 - Minimizes a given DFA using the table-construction method

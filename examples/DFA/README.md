@@ -18,6 +18,7 @@ This is achievable with a simple automaton with 3 states. Let's skip a formal de
 1.2 [From a file](#from-a-file)  
 2. [Saving DFAs](#saving-dfas)  
 3. [Testing DFAs](#testing-dfas)  
+4. [Minimizing DFAs](#minimizing-dfas)  
 
 ## Reading DFAs
 
@@ -162,6 +163,89 @@ At the beginning the program will also tell you the symbols you may use, which i
 To quit the testing mode, just type something that is not part of the input alphabet.  
 If you set the `--save` when you started the program, do not exit the testing mode with `^C`. This will cause the program to halt immediatly and skip the saving step.  
 Only do this, if you are unhappy with the behaviour of your automaton and you don't want to keep it.  
+
+## Minimizing DFAs  
+
+Hand-written automata are often created in a non-optimal way.  
+Be it because the creator didn't notice a way to keep it more simple or (the more common reason) to make it more simple and easy to read.  
+But using such automata in a 'real-life application' is inefficient and uses more system resources than needed.  
+This section will cover how you can create a minimal automaton with `mafl`.  
+
+Basically you just have to add the `--minimize` or `-m` flag to your program call. That's it.  
+But let's cover it in a bit more detail.  
+We will again use $L_1$ to demonstrate minimization. But now let's inflate the automaton for no good reason.  
+Instead of 3 states, we will now use 9 states. The additional states just repeat the pattern that we have created before.  
+I will now skip over explaining every single step and just show you what the terminal should look like.  
+I called the program using `mafl -dfa -m -s -n minimalDFAexample01`
+
+*(User input is again specified with `>>>` which will not show up on your screen)*
+~~~
+Enter the set of states Q
+Individual states sperated by a comma, spaces will be ignored, character limit: 250
+>>> q0,q1,q2,q3,q4,q5,q6,q7,q8
+
+9 states registered
+Now enter the input alphabet
+Same rules as for entering the states
+>>> a
+
+1 symbol registered
+Now enter the transition function d
+Choose one of the following states for each transition and enter the corresponding number
+States: 0 = q0, 1 = q1, 2 = q2, 3 = q3, 4 = q4, 5 = q5, 6 = q6, 7 = q7, 8 = q8
+d(q0, a) = >>> 1
+d(q1, a) = >>> 2
+d(q2, a) = >>> 3
+d(q3, a) = >>> 4
+d(q4, a) = >>> 5
+d(q5, a) = >>> 6
+d(q6, a) = >>> 7
+d(q7, a) = >>> 8
+d(q8, a) = >>> 0
+
+Now enter the starting state
+Choose one of the following states and enter the corresponding number
+States: 0 = q0, 1 = q1, 2 = q2, 3 = q3, 4 = q4, 5 = q5, 6 = q6, 7 = q7, 8 = q8
+>>> 0
+
+Now enter the set of accepting states
+Is 'q0' an accepting state? [y/n] >>> y
+Is 'q1' an accepting state? [y/n] >>> n
+Is 'q2' an accepting state? [y/n] >>> n
+Is 'q3' an accepting state? [y/n] >>> y
+Is 'q4' an accepting state? [y/n] >>> n
+Is 'q5' an accepting state? [y/n] >>> n
+Is 'q6' an accepting state? [y/n] >>> y
+Is 'q7' an accepting state? [y/n] >>> n
+Is 'q8' an accepting state? [y/n] >>> n
+~~~
+
+I hope that entering the DFA is pretty self-explanatory. If not, go over [this section](#from-the-terminal) again.  
+Alternatively you can get the DFA configuration [here](/examples/DFA/nonMinDFAexample01.txt) and enter it using `mafl -dfa -r nonMinDFAexample01.txt -m -s -n minimalDFAexample01`.  
+
+Now let's go over the more important terminal output which I have hidden until now:  
+~~~
+Got rid of 6 states (9 --> 3)
+The new states are:
+'q0q3q6' (accepting, starting)
+'q1q4q7'
+'q2q5q8'
+
+The new transition function:
+d(q0q3q6, a) = q1q4q7
+d(q1q4q7, a) = q2q5q8
+d(q2q5q8, a) = q0q3q6
+
+The automaton you will be testing is the minimal one.
+~~~
+
+The program will show you how your automaton was modified to make it minimal.  
+After minimizing, `mafl` will entern [testing](#testing-dfas) mode. As stated above, you will be testing the minimal automaton, which should behave exactly like the one that was entered, but it has less states.  
+
+You can find the specific minimal automaton, that we have created in this example [here](/examples/DFA/minimalDFAexample01.txt).  
+
+**Note:** When you are saving a DFA and also minimizing it, only the minimal version will be saved.  
+If you need your non-minimal automaton later, make sure to enter and save it, and then run `mafl` again and save your minimal automaton seperately.  
 
 &nbsp;  
 

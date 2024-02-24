@@ -74,7 +74,7 @@ void** enterDFA() {
     }
     formatForPrint(',', '\0', states, SIZE, stateLocs);
     if(checkValidity(states, stateLocs, *stateCount) == 0) {
-        printf_s("Invalid state detected! Exiting process");
+        printf_s("Invalid state detected! Exiting.");
         return 0;
     }
 
@@ -103,7 +103,7 @@ void** enterDFA() {
     }
     formatForPrint(',', '\0', symbols, SIZE, symbolLocs);
     if(checkValidity(symbols, symbolLocs, *symbolCount) == 0) {
-        printf_s("Invalid symbol detected! Exiting process");
+        printf_s("Invalid symbol detected! Exiting.");
         return 0;
     }
 
@@ -186,7 +186,7 @@ void** enterDFA() {
             } else if(answer == 'n' || answer == 'N') {
                 i = -1;
             } else {
-                printf_s("Invalid input! Exiting\n");
+                printf_s("Invalid input! Exiting.\n");
                 return 0;
             }
         }
@@ -359,7 +359,7 @@ void** readDFA(char* filename) {
     // Try to read file
     FILE * fp = fopen(filename, "r");
     if(fp == NULL) {
-        printf_s("\nFile \'%s\' seems to not exist. Exiting\n", filename);
+        printf_s("\nFile \'%s\' seems to not exist. Exiting.\n", filename);
         return 0;
     }
 

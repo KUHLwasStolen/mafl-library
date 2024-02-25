@@ -8,7 +8,12 @@ In this chapter of our examples, we will cover everything you need to know about
 To illustrate everything that mafl can do with DFAs we will use an automaton which decides the Language $L_{1}$:  
 $$L_{1} := \\{ a^{n*3} \hspace{3mm}|\hspace{3mm} n \in \mathbb{N}_{0} \\}$$  
 Written out: All valid inputs are those who are made up of only a's and where the amount of a's is divisable by 3.  
-This is achievable with a simple automaton with 3 states. Let's skip a formal definition and let's [enter it directly into the CLI](#from-the-terminal).  
+This is achievable with a simple automaton with 3 states.  
+A visual representation of the automaton would look like this:  
+
+![<img src="DFAexample01" width="512"/>](/examples/DFA/DFAexample01.png "DFAexample01")
+
+Let's skip a formal definition and let's [enter it directly into the CLI](#from-the-terminal).  
 
 &nbsp;  
 

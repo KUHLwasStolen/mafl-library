@@ -11,7 +11,7 @@ Written out: All valid inputs are those who are made up of only a's and where th
 This is achievable with a simple automaton with 3 states.  
 A visual representation of the automaton would look like this:  
 
-![<img src="DFAexample01" width="512"/>](/examples/DFA/DFAexample01.png "DFAexample01")
+<img src="/examples/DFA/DFAexample01.png" alt="Drawing of DFAexample01" width="350"/>
 
 Let's skip a formal definition and let's [enter it directly into the CLI](#from-the-terminal).  
 

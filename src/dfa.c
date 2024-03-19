@@ -26,6 +26,7 @@ void** readDFA(char*);
 int getSection(char*);
 
 void** minimizeDFA(void**);
+void** editDFA(void**);
 
 void newDFA(char* save, char* read, int minimize) {
     void** dfa = NULL;
@@ -760,6 +761,148 @@ void** minimizeDFA(void** dfaConfig) {
     minDFA[8] = minAcceptingStates;    
 
     return minDFA;
+}
+
+
+
+void** editDFA(void** dfaConfig) {
+    char* states = dfaConfig[0];
+    int* stateCount = dfaConfig[1];
+    int* stateLocs = dfaConfig[2];
+    char* symbols = dfaConfig[3];
+    int* symbolCount = dfaConfig[4];
+    int* symbolLocs = dfaConfig[5];
+    int* transitionFunc = dfaConfig[6];
+    int* startingState = dfaConfig[7];
+    int* acceptingStates = dfaConfig[8];
+
+    char firstLayer = 0, secondLayer = 0;
+
+    char loop = 1;
+    while(loop) {
+        switch(firstLayer) {
+            case 0:
+                // First layer of options
+                printf_s("\nEdit DFA:\n");
+                printf_s("[0] States\n\tedit names, add/remove state,\n\tedit starting state, edit accepting states\n");
+                printf_s("[1] Symbols\n\tchange names, add/remove symbols\n");
+                printf_s("[2] Transition function\n\tenter a different set of transitions\n");
+                printf_s("[q] Quit\n");
+                printf_s("Type the symbol in brackets to choose the corresponding action\n");
+                
+                fflush(stdin);
+                scanf(" %c", &firstLayer);
+                break;
+
+            case '0':
+                switch(secondLayer) {
+                    case 0:
+                        printf_s("\nEdit states:\n[0] edit names\n[1] add state\n[2] remove state\n");
+                        printf_s("[3] edit starting state\n[4] edit accepting states\n[q] back\n");
+                        printf_s("Type the symbol in brackets to choose the corresponding action\n");
+
+                        fflush(stdin);
+                        scanf(" %c", &secondLayer);
+                        puts("");
+                        break;
+
+                    case '0':
+                        break;
+
+                    case '1':
+                        break;
+
+                    case '2':
+                        break;
+
+                    case '3':
+                        printf_s("Enter the corresponding number of the state that should be the new starting state\n");
+                        for(int i = 0; i < *stateCount; i++) {
+                            printf_s("%d = \'%s\'%s%s", i, &states[stateLocs[i]], i == *startingState ? " (current)" : "", i + 1 == *stateCount ? "\n" : ", ");
+                        }
+
+                        int newStartingState;
+                        fflush(stdin);
+                        scanf("%d", &newStartingState);
+
+                        if(newStartingState < 0 || newStartingState > *stateCount - 1) {
+                            printf_s("\nInvalid input!\n");
+                            break;
+                        }
+                        *startingState = newStartingState;
+                        printf_s("\nThe starting state now is \'%s\'\n", &states[stateLocs[*startingState]]);
+
+                        secondLayer = 0;
+                        break;
+
+                    case '4':
+                        printf_s("Currently: ");
+                        for(int i = 0; i < *stateCount; i++) {
+                            printf_s("\'%s\'%s%s", &states[stateLocs[i]], acceptingStates[i] == 1 ? " (acc)" : "", i + 1 == *stateCount ? "\n" : ", ");
+                        }
+                        printf_s("The following configuration will overwrite the current one.\n\n");
+
+                        for(int i = 0, j = 0; i < *stateCount; i++) {
+                            printf_s("Is \'%s\' an accepting state? [y/n] ", states + stateLocs[i]);
+                            char answer;
+                            fflush(stdin);
+                            scanf(" %c", &answer);
+                            if(answer == 'y' || answer == 'Y') {
+                                acceptingStates[i] = 1;
+                                j++;
+                            } else if(answer == 'n' || answer == 'N') {
+                                acceptingStates[i] = 0;
+                            } else {
+                                printf_s("Invalid input! Try again\n");
+                                i--;
+                            }
+
+                            if(j == 0 && i == *stateCount - 1) {
+                                printf_s("Zero accepting states? Sure? [y/n] ");
+                                fflush(stdin);
+                                scanf(" %c", &answer);
+                                if(answer == 'y' || answer == 'Y') {
+                                    
+                                } else if(answer == 'n' || answer == 'N') {
+                                    i = -1;
+                                } else {
+                                    printf_s("Invalid input! Defaulted to \'y\'\n");
+                                }
+                            }
+                        }
+
+                        secondLayer = 0;
+                        break;
+
+                    case 'q':
+                    case 'Q':
+                        secondLayer = 0;
+                        firstLayer = 0;
+                        break;
+
+                    default:
+                        printf_s("\nInvalid input!\n");
+                        secondLayer = 0;
+                        break;
+                }
+                break;
+
+            case '1':
+                break;
+            case '2':
+                break;
+
+            case 'q':
+            case 'Q':
+                loop = 0;
+                break;
+
+            default:
+                printf_s("\nInvalid input!\n");
+                firstLayer = 0;
+                break;
+        }
+    }
 }
 
 

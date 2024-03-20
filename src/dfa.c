@@ -8,7 +8,7 @@
 
 #define SIZE 251
 
-void newDFA(char*, char*, int);
+void newDFA(char*, char*, int, int);
 
 void** enterDFA();
 void formatForPrint(const char, const char, char*, const int, int*);
@@ -28,7 +28,7 @@ int getSection(char*);
 void** minimizeDFA(void**);
 void** editDFA(void**);
 
-void newDFA(char* save, char* read, int minimize) {
+void newDFA(char* save, char* read, int minimize, int edit) {
     void** dfa = NULL;
     if(read == 0) {
         dfa = (void**)enterDFA();
@@ -38,6 +38,7 @@ void newDFA(char* save, char* read, int minimize) {
     if(dfa == 0) return;
 
     if(minimize != 0) dfa = minimizeDFA(dfa);
+    if(edit != 0) dfa = editDFA(dfa);
 
     testDFA(dfa);
 
@@ -781,23 +782,26 @@ void** editDFA(void** dfaConfig) {
     char loop = 1;
     while(loop) {
         switch(firstLayer) {
+            // first layer options
             case 0:
-                // First layer of options
                 printf_s("\nEdit DFA:\n");
                 printf_s("[0] States\n\tedit names, add/remove state,\n\tedit starting state, edit accepting states\n");
                 printf_s("[1] Symbols\n\tchange names, add/remove symbols\n");
-                printf_s("[2] Transition function\n\tenter a different set of transitions\n");
+                printf_s("[2] Transition function\n\tchange one/all transition(s)\n");
                 printf_s("[q] Quit\n");
                 printf_s("Type the symbol in brackets to choose the corresponding action\n");
                 
                 fflush(stdin);
                 scanf(" %c", &firstLayer);
+                puts("");
                 break;
 
+            // edit states
             case '0':
                 switch(secondLayer) {
+                    // edit state options
                     case 0:
-                        printf_s("\nEdit states:\n[0] edit names\n[1] add state\n[2] remove state\n");
+                        printf_s("Edit states:\n[0] edit names\n[1] add state\n[2] remove state\n");
                         printf_s("[3] edit starting state\n[4] edit accepting states\n[q] back\n");
                         printf_s("Type the symbol in brackets to choose the corresponding action\n");
 
@@ -806,15 +810,25 @@ void** editDFA(void** dfaConfig) {
                         puts("");
                         break;
 
+                    // edit state names
                     case '0':
+                        printf_s("Currently under construction\n");
+                        secondLayer = 0;
                         break;
 
+                    // add state
                     case '1':
+                        printf_s("Currently under construction\n");
+                        secondLayer = 0;
                         break;
 
+                    // remove state
                     case '2':
+                        printf_s("Currently under construction\n");
+                        secondLayer = 0;
                         break;
 
+                    // edit starting state
                     case '3':
                         printf_s("Enter the corresponding number of the state that should be the new starting state\n");
                         for(int i = 0; i < *stateCount; i++) {
@@ -835,6 +849,7 @@ void** editDFA(void** dfaConfig) {
                         secondLayer = 0;
                         break;
 
+                    // edit accepting states
                     case '4':
                         printf_s("Currently: ");
                         for(int i = 0; i < *stateCount; i++) {
@@ -874,6 +889,7 @@ void** editDFA(void** dfaConfig) {
                         secondLayer = 0;
                         break;
 
+                    // back
                     case 'q':
                     case 'Q':
                         secondLayer = 0;
@@ -881,15 +897,109 @@ void** editDFA(void** dfaConfig) {
                         break;
 
                     default:
-                        printf_s("\nInvalid input!\n");
+                        printf_s("Invalid input!\n");
                         secondLayer = 0;
                         break;
                 }
                 break;
 
+            // edit symbols
             case '1':
+                printf_s("Currently under construction\n");
+                firstLayer = 0;
                 break;
+
+            // edit transition function
             case '2':
+                switch(secondLayer) {
+                    // edit transition function options
+                    case 0:
+                        printf_s("Edit transition function:\n");
+                        printf_s("[0] edit a single transition\n[1] edit the whole function\n");
+                        printf_s("[q] back\n");
+                        printf_s("Type the symbol in brackets to choose the corresponding action\n");
+
+                        fflush(stdin);
+                        scanf(" %c", &secondLayer);
+                        puts("");
+                        break;
+                    
+                    // edit one transition
+                    case '0':
+                        printf_s("Enter the number of the of the corresponding transition which you want to edit\n");
+                        for(int i = 0; i < *stateCount; i++) {
+                            for(int j = 0; j < *symbolCount; j++) {
+                                printf_s("[%d] d(%s, %s) = %s\t", (i * (*symbolCount)) + j, &states[stateLocs[i]], &symbols[symbolLocs[j]], &states[stateLocs[transitionFunc[(i * (*symbolCount)) + j]]]);
+                                if(((i * (*symbolCount)) + j) % 2 == 1) puts("");
+                            }
+                        }
+                        puts("");
+
+                        int editedTransition;
+                        fflush(stdin);
+                        scanf("%d", &editedTransition);
+                        if(editedTransition < 0 || editedTransition + 1 > (*stateCount) * (*symbolCount)) {
+                            printf_s("Invalid input!\n");
+                            secondLayer = 0;
+                            break;
+                        }
+
+                        printf_s("Choose one of the following states as the new transition destination and enter the corresponding number\nStates: ");
+                        for(int i = 0; i < *stateCount; i++) {
+                            printf_s("%d = %s%c ", i, states + stateLocs[i], i == *stateCount - 1 ? '\0' : ',');
+                        }
+                        puts("");
+
+                        int newDestination;
+                        printf_s("d(%s, %s) = ", states + stateLocs[editedTransition / (*symbolCount)], symbols + symbolLocs[editedTransition % (*symbolCount)]);
+                        fflush(stdin);
+                        scanf("%d", &newDestination);
+                        if(newDestination < 0 || newDestination + 1 > (*stateCount)) {
+                            printf_s("Invalid input!\n");
+                            secondLayer = 0;
+                            break;
+                        }
+
+                        transitionFunc[editedTransition] = newDestination;
+                        secondLayer = 0;
+                        break;
+                    
+                    // edit the whole function
+                    case '1':
+                        printf_s("Choose one of the following states for each transition and enter the corresponding number\nStates: ");
+                        for(int i = 0; i < *stateCount; i++) {
+                            printf_s("%d = %s%c ", i, states + stateLocs[i], i == *stateCount - 1 ? '\0' : ',');
+                        }
+                        puts("");
+
+                        for(int i = 0; i < *stateCount; i++) {
+                            for(int j = 0; j < *symbolCount; j++) {
+                                printf_s("d(%s, %s) = ", states + stateLocs[i], symbols + symbolLocs[j]);
+                                fflush(stdin);
+                                scanf("%d", transitionFunc + ((i * (*symbolCount)) + j));
+                                if(*(transitionFunc + ((i * (*symbolCount)) + j)) < 0 || *(transitionFunc + ((i * (*symbolCount)) + j)) > (*stateCount) - 1) {
+                                    printf_s("State out of range! Try again\n");
+                                    j--;
+                                }
+                            }
+                        }
+                        puts("");
+
+                        secondLayer = 0;
+                        break;
+
+                    // back
+                    case 'q':
+                    case 'Q':
+                        secondLayer = 0;
+                        firstLayer = 0;
+                        break;
+
+                    default:
+                        printf_s("Invalid Input!\n");
+                        secondLayer = 0;
+                        break;
+                }
                 break;
 
             case 'q':
@@ -898,11 +1008,13 @@ void** editDFA(void** dfaConfig) {
                 break;
 
             default:
-                printf_s("\nInvalid input!\n");
+                printf_s("Invalid input!\n");
                 firstLayer = 0;
                 break;
         }
     }
+
+    return dfaConfig;
 }
 
 

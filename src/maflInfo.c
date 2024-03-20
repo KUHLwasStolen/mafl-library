@@ -3,7 +3,7 @@
 #include "maflInfo.h"
 #include "generalDefs.h"
 
-#define VERSION "V0.1.3"
+#define VERSION "V0.1.4"
 
 void listUsage();
 void listShort();

@@ -812,7 +812,34 @@ void** editDFA(void** dfaConfig) {
 
                     // edit state names
                     case '0':
-                        printf_s("Currently under construction\n");
+                        printf_s("These are all available states:\n");
+                        for(int i = 0; i < *stateCount; i++) {
+                            printf_s("[%d] \'%s\'%s", i, &states[stateLocs[i]], i + 1 == *stateCount ? "\n" : ", ");
+                        }
+                        printf_s("Enter the number of the state of which you want to edit the name.\n");
+
+                        int editedState = 0;
+                        fflush(stdin);
+                        scanf(" %d", &editedState);
+                        if(editedState < 0 || editedState + 1 > *stateCount) {
+                            printf_s("\nInvalid input!\n");
+                            secondLayer = 0;
+                            break;
+                        }
+
+                        int maxLength = SIZE - strlen(&states[stateLocs[*stateCount]]) - 1 + strlen(&states[stateLocs[editedState]]);
+                        printf_s("Enter a new name for \'%s\'\n(max. length: %d)\n", &states[stateLocs[editedState]], maxLength - 1);
+                        char newName[maxLength];
+                        // TRY: move newName to heap, this might be allowed instead of a variable length array
+                        newName[0] = 0;
+                        fflush(stdin);
+                        fgets(newName, maxLength, stdin);
+                        removeChar('\n', newName, 21);
+                        removeChar(' ', newName, 21);
+                        int oldLength = strlen(&states[stateLocs[editedState]]);
+                        int sizeDiff = strlen(newName) - oldLength;
+                        printf_s("%d\n", sizeDiff);
+
                         secondLayer = 0;
                         break;
 
@@ -1049,9 +1076,20 @@ void removeChar(const char ch, char* str, const int size) {
     }
 }
 
+// moves the characters in a string one character to the left
+// deletes to the left side
 void moveLeft(char* str, const int size, const int from) {
+    if(from + 1 > size || from < 0) return;
     for(int i = from; i < size - 1; i++)
         str[i] = str[i + 1];
+}
+
+// moves the characters in a string one character to the right
+// deletes to the right side
+void moveRight(char* str, const int size, const int from) {
+    if(from + 1 > size || from < 0) return;
+    for(int i = size - 1; i > from; i--)
+        str[i] = str[i - 1];
 }
 
 int checkValidity(char* str, int* locs, const int count) {
